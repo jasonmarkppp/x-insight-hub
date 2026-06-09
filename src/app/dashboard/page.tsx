@@ -62,19 +62,19 @@ async function StatsGrid() {
       todayAnalysis,
       todayContent,
     ] = await Promise.all([
-      AuthorRepository.findAll({ pageSize: 1 }).catch(() => ({ data: [], total: 0, page: 1, pageSize: 1 })),
+      AuthorRepository.getActiveAuthors().catch(() => [] as any[]),
       TweetRepository.getTodayCount().catch(() => 0),
       AnalysisRepository.getTodayCount().catch(() => 0),
       ContentRepository.getTodayCount().catch(() => 0),
     ]);
 
-    const activeAuthors = authorsResult.data.filter((a) => a.active === true).length;
+    const activeAuthors = allAuthors.filter((a: any) => a.active === true).length;
 
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Authors"
-          value={authorsResult.total}
+          value={totalAuthors}
           icon={Users}
           description={`${activeAuthors} active`}
         />
