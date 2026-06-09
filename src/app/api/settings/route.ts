@@ -103,8 +103,9 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to save settings:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to save settings" },
+      { error: "Failed to save settings", details: message },
       { status: 500 },
     );
   }
