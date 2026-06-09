@@ -1,23 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get("error") === "1") {
-      setError(true);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("error") === "1") {
+        setError(true);
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const redirect = searchParams.get("redirect") || "/";
     window.location.href = `/?password=${encodeURIComponent(password)}`;
   };
 
