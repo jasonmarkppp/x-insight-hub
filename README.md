@@ -178,7 +178,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=你的Anon Key
 ```
 
 4. 部署完成后，在 Settings 页面配置其他 API Key
-5. Cron Job 需 Pro 订阅：`vercel.json` 已配置 `/api/cron/fetch-tweets` 每 10 分钟触发
+5. 设置定时抓取（Vercel Hobby 版不支持内置 Cron）
+
+   去 [cron-job.org](https://cron-job.org) 注册 → 点 **Create Cronjob**：
+
+   | 字段 | 值 |
+   |------|-----|
+   | **URL** | `https://你的域名.vercel.app/api/cron/fetch-tweets` |
+   | **Schedule** | `Every 10 minutes` |
+   | **Request Method** | `GET` |
+
+   保存即可。系统内置的**博主分级机制**（S/A/B三级）会自动控制每次抓哪些博主，避免无谓消耗 API 配额。
 
 ## 环境变量
 
