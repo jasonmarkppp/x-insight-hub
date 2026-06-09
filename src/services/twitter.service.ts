@@ -108,10 +108,10 @@ export const TwitterService = {
       // Map TwitterAPI.io response to our expected format
       const raw = result.data as any;
       return {
-        id: String(raw.id || raw.rest_id || ""),
-        name: raw.name || raw.screen_name || username,
-        username: raw.screen_name || username,
-        profile_image_url: raw.profile_image_url || raw.avatar || "",
+        id: String(raw.id || ""),
+        name: raw.name || raw.userName || username,
+        username: raw.userName || username,
+        profile_image_url: raw.profilePicture || "",
       };
     } catch (error) {
       logger.error(`Failed to fetch Twitter user: ${username}`, error);
@@ -120,30 +120,30 @@ export const TwitterService = {
   },
 
   /**
-   * Get recent tweets for a user by their Twitter user ID (numeric).
-   * Uses /twitter/user/tweet_timeline?id={userId}
+   * Get recent tweets for a user by their Twitter username.
+   * Uses /twitter/user/last_tweets?userName={userName}
    *
    * Returns an empty array on any API error or empty response.
    */
   async getUserTweets(
-    userId: string,
+    userName: string,
     sinceId?: string,
     maxResults = 10,
   ): Promise<TwitterTweet[]> {
     try {
       const params: Record<string, string> = {
-        id: userId,
+        userName,
         pageSize: String(Math.min(maxResults, 20)),
       };
 
       const result = await twitterFetch<TwitterTweet[]>(
-        "/twitter/user/tweet_timeline",
+        "/twitter/user/last_tweets",
         params,
       );
 
       // Defensive: guard against empty/missing response
       if (!result) {
-        logger.debug(`Empty response from TwitterAPI.io for user ${userId}`);
+        logger.debug(`Empty response from TwitterAPI.io for user ${userName}`);
         return [];
       }
 
@@ -158,12 +158,10 @@ export const TwitterService = {
 
       // Map to our internal format
       const tweets: TwitterTweet[] = result.data.map((tweet: any) => ({
-        id: String(tweet.id || tweet.rest_id || ""),
+        id: String(tweet.id || ""),
         text: tweet.text || tweet.full_text || "",
         created_at: tweet.created_at || tweet.createdAt || new Date().toISOString(),
-        author_id: String(
-          tweet.author_id || tweet.user_id || result.data?.[0]?.author_id || "",
-        ),
+        author_id: String(tweet.author_id || ""),
       }));
 
       // If sinceId is provided, filter to only return tweets newer than it
@@ -173,16 +171,16 @@ export const TwitterService = {
 
       return tweets;
     } catch (error) {
-      logger.error(`Failed to fetch tweets for user: ${userId}`, error);
+      logger.error(`Failed to fetch tweets for user: ${userName}`, error);
       return []; // Never throw — cron must continue to next author
     }
   },
 
   /**
-   * Get the last tweet for a user.
+   * Get the last tweet for a user by their Twitter username.
    */
-  async getLatestTweet(userId: string): Promise<TwitterTweet | null> {
-    const tweets = await this.getUserTweets(userId, undefined, 5);
+  async getLatestTweet(userName: string): Promise<TwitterTweet | null> {
+    const tweets = await this.getUserTweets(userName, undefined, 5);
     return tweets.length > 0 ? tweets[0] : null;
   },
 };

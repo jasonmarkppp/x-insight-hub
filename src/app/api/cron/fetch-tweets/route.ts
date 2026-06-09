@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
             : undefined;
 
         const tweets = await TwitterService.getUserTweets(
-          author.twitter_user_id,
+          author.username,
           sinceId,
           10,
         );
