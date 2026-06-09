@@ -147,21 +147,18 @@ export const TwitterService = {
         return [];
       }
 
-      // meta.result_count can be 0
-      if (result.meta?.result_count === 0) {
-        return [];
-      }
-
-      if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
+      // TwitterAPI.io returns: { status, code, msg, data: { pin_tweet, tweets: [...] } }
+      const tweetsData = (result as any).data?.tweets;
+      if (!tweetsData || !Array.isArray(tweetsData) || tweetsData.length === 0) {
         return [];
       }
 
       // Map to our internal format
-      const tweets: TwitterTweet[] = result.data.map((tweet: any) => ({
+      const tweets: TwitterTweet[] = tweetsData.map((tweet: any) => ({
         id: String(tweet.id || ""),
-        text: tweet.text || tweet.full_text || "",
-        created_at: tweet.created_at || tweet.createdAt || new Date().toISOString(),
-        author_id: String(tweet.author_id || ""),
+        text: tweet.text || "",
+        created_at: tweet.createdAt || tweet.created_at || new Date().toISOString(),
+        author_id: String(tweet.author?.id || tweet.author_id || ""),
       }));
 
       // If sinceId is provided, filter to only return tweets newer than it
