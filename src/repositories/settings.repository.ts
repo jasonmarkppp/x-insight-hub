@@ -42,59 +42,51 @@ export const SettingsRepository = {
 
   /**
    * Upsert settings — merges partial config into the existing row.
+   * Throws on error so the API route can return details to the client.
    */
-  async saveSettings(config: Partial<AppSettings>): Promise<boolean> {
-    try {
-      const supabase = getSettingsClient();
+  async saveSettings(config: Partial<AppSettings>): Promise<void> {
+    const supabase = getSettingsClient();
 
-      // Get current config first so we can merge
-      const { data: existing } = await (supabase as any)
-        .from("settings")
-        .select("id, config")
-        .limit(1);
+    // Get current config first so we can merge
+    const { data: existing } = await (supabase as any)
+      .from("settings")
+      .select("id, config")
+      .limit(1);
 
-      if (existing && existing.length > 0) {
-        const row = existing[0] as Record<string, unknown>;
-        const currentConfig = (row.config as AppSettings) || {};
-        // Merge new config into existing config
-        const mergedConfig = {
-          ...currentConfig,
-          ...config,
-        };
-        const { error } = await (supabase as any)
-          .from("settings")
-          .update({ config: mergedConfig })
-          .eq("id", row.id as string);
-
-        if (error) {
-          console.error("Failed to save settings:", error);
-          return false;
-        }
-        return true;
-      }
-
-      // Insert new row with default empty values merged with provided config
-      const defaultConfig: AppSettings = {
-        supabase_url: "",
-        supabase_anon_key: "",
-        supabase_service_role_key: "",
-        twitter_bearer_token: "",
-        deepseek_api_key: "",
-        feishu_webhook_url: "",
-        cron_secret: "",
+    if (existing && existing.length > 0) {
+      const row = existing[0] as Record<string, unknown>;
+      const currentConfig = (row.config as AppSettings) || {};
+      const mergedConfig = {
+        ...currentConfig,
+        ...config,
       };
       const { error } = await (supabase as any)
         .from("settings")
-        .insert({ config: { ...defaultConfig, ...config } });
+        .update({ config: mergedConfig })
+        .eq("id", row.id as string);
 
       if (error) {
-        console.error("Failed to insert settings:", error);
-        return false;
+        throw new Error(`Supabase update error: ${JSON.stringify(error)}`);
       }
-      return true;
-    } catch (err) {
-      console.error("Failed to save settings:", err);
-      return false;
+      return;
+    }
+
+    // Insert new row
+    const defaultConfig: AppSettings = {
+      supabase_url: "",
+      supabase_anon_key: "",
+      supabase_service_role_key: "",
+      twitter_bearer_token: "",
+      deepseek_api_key: "",
+      feishu_webhook_url: "",
+      cron_secret: "",
+    };
+    const { error } = await (supabase as any)
+      .from("settings")
+      .insert({ config: { ...defaultConfig, ...config } });
+
+    if (error) {
+      throw new Error(`Supabase insert error: ${JSON.stringify(error)}`);
     }
   },
 };

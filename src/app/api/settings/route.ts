@@ -89,13 +89,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const success = await SettingsRepository.saveSettings(cleaned);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Failed to save settings to database" },
-        { status: 500 },
-      );
-    }
+    await SettingsRepository.saveSettings(cleaned);
 
     // Invalidate in-memory cache
     invalidateSettingsCache();
