@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   "/api/",
   "/_next/",
   "/favicon",
+  "/login",
 ];
 
 export function middleware(request: NextRequest) {
