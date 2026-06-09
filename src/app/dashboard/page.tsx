@@ -57,7 +57,7 @@ async function StatsGrid() {
       await import("@/repositories");
 
     const [
-      authorsResult,
+      allAuthors,
       todayTweets,
       todayAnalysis,
       todayContent,
@@ -68,6 +68,7 @@ async function StatsGrid() {
       ContentRepository.getTodayCount().catch(() => 0),
     ]);
 
+    const totalAuthors = allAuthors.length;
     const activeAuthors = allAuthors.filter((a: any) => a.active === true).length;
 
     return (

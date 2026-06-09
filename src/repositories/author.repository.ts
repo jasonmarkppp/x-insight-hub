@@ -100,6 +100,21 @@ export const AuthorRepository = {
   },
 
   /**
+   * Get all active authors (regardless of tier timing).
+   * Used by the dashboard for stats display.
+   */
+  async getActiveAuthors(): Promise<Author[]> {
+    const supabase = await getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("*")
+      .eq("active", true);
+
+    if (error) throw new Error(`Failed to fetch active authors: ${error.message}`);
+    return (data as Author[]) ?? [];
+  },
+
+  /**
    * Get active authors whose tier-based fetch interval has elapsed.
    * This is the core of the tiering system — only returns authors
    * that are actually due for a fetch cycle.
